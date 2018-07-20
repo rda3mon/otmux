@@ -10,12 +10,21 @@ def remote(hosts, session):
     first = hosts.pop(0)
     command = "tmux new -s {} -d 'ssh {}'".format(session, first)
 
+    windows = 1
+    count = 0
     for host in hosts:
-       command += " \; split-window -h 'ssh {}'".format(host)
-       command += " \; select-layout tiled > /dev/null"
+        count += 1
+        if count%10 == 0:
+            windows += 1;
+            command += " \; new-window 'ssh {}'".format(host)
+        else:
+            command += " \; split-window -h 'ssh {}'".format(host)
+        command += " \; select-layout tiled > /dev/null"
 
+    for window in range(windows, 0, -1):
+        command += " \; select-window -t {}".format(window)
+        command += " \; set-window-option synchronize-panes on > /dev/null"
     command += " \; select-pane -t 1"
-    command += " \; set-window-option synchronize-panes on > /dev/null"
     exit_status = call(command, shell=True);
 
 def login(hosts):
