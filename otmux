@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import argparse
 import sys
 import re
@@ -10,8 +12,8 @@ def remote(hosts, session):
 
     for host in hosts:
        command += " \; split-window -h 'ssh {}'".format(host)
+       command += " \; select-layout tiled > /dev/null"
 
-    command += " \; select-layout tiled > /dev/null"
     command += " \; select-pane -t 1"
     command += " \; set-window-option synchronize-panes on > /dev/null"
     exit_status = call(command, shell=True);
