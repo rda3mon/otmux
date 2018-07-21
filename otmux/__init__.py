@@ -25,14 +25,14 @@ def remote(hosts, session):
         command += " \; select-window -t {}".format(window)
         command += " \; set-window-option synchronize-panes on > /dev/null"
     command += " \; select-pane -t 1"
-    exit_status = call(command, shell=True);
+    exit_status = call(command, shell=True)
 
 def login(hosts):
     pass
 
 
 def parseHosts(hostsString):
-    hosts = None;
+    hosts = None
     try:
         hosts = re.split(r"[ \t]+", hostsString.strip())
     except:
@@ -85,6 +85,4 @@ def main():
     elif args.login is True:
         login(hosts, args.session)
 
-
-if __name__ == '__main__':
-    main()
+__all__ = ['main']
