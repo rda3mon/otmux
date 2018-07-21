@@ -6,7 +6,7 @@ Perform multiple remote activities using tmux
 
 #### To install from release (Built on linux)
 
-```console
+```bash
 sudo su
 curl -L https://github.com/rda3mon/otmux/releases/download/v0.1-pre/otmux -o /usr/local/bin/otmux
 chmod +x /usr/local/bin/otmux
@@ -16,21 +16,21 @@ chmod +x /usr/local/bin/otmux
 
 For latest release
 
-```console
+```bash
 git clone https://github.com/rda3mon/otmux.git /tmp/otmux && cd /tmp/otmux
 make && sudo make install
 ```
 
 For specific release
 
-```console
+```bash
 git clone https://github.com/rda3mon/otmux.git --branch v0.1-pre /tmp/otmux && cd /tmp/otmux
 make && sudo make install
 ```
 
 ## Usage
 
-```console
+```bash
 usage: otmux [-h] (-m HOSTS | -H HOSTSFILE) (-r | -l) -s SESSION [-d]
 
 Multi remote actions using Tmux and ssh
