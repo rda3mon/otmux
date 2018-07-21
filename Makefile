@@ -1,24 +1,33 @@
+BUILDDIR ?= ./dist
+EXECUTABLE ?= otmux
 PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin
 PYTHON ?= /usr/bin/env python
 
-all: otmux/*.py
-	mkdir -p dist
-	mkdir -p dist/zip
+all: otmux
+
+install:
+	install $(BUILDDIR)/$(EXECUTABLE) $(DESTDIR)$(BINDIR)
+	chmod +x $(DESTDIR)$(BINDIR)/$(EXECUTABLE)
+
+otmux: otmux/*.py
+	mkdir -p $(BUILDDIR)
+	mkdir -p $(BUILDDIR)/zip
 	for d in otmux ; do \
-		mkdir -p dist/zip/$$d ;\
-		cp -pPR $$d/*.py dist/zip/$$d/ ;\
+		mkdir -p $(BUILDDIR)/zip/$$d ;\
+		cp -pPR $$d/*.py $(BUILDDIR)/zip/$$d/ ;\
 	done
-	touch -t 200001010101 dist/zip/otmux/*.py
-	mv dist/zip/otmux/__main__.py dist/zip/
-	cd dist/zip ; zip -q ../otmux otmux/*.py __main__.py
-	rm -rf dist/zip
-	echo '#!$(PYTHON)' > dist/otmux
-	cat dist/otmux.zip >> dist/otmux
-	rm dist/otmux.zip
-	chmod a+x dist/otmux
+	mv $(BUILDDIR)/zip/$(EXECUTABLE)/__main__.py $(BUILDDIR)/zip/
+	cd $(BUILDDIR)/zip ; zip -q ../$(EXECUTABLE) $(EXECUTABLE)/*.py __main__.py
+	rm -rf $(BUILDDIR)/zip
+	echo '#!$(PYTHON)' > $(BUILDDIR)/$(EXECUTABLE)
+	cat $(BUILDDIR)/$(EXECUTABLE).zip >> $(BUILDDIR)/$(EXECUTABLE)
+	rm $(BUILDDIR)/$(EXECUTABLE).zip
+	chmod a+x $(BUILDDIR)/$(EXECUTABLE)
 
 clean:
-	rm -rf MANIFEST build/ dist/
+	rm -rf MANIFEST $(BUILDDIR)
 	find . -name "*.pyc" -delete
 
+
+.PHONY: all clean install otmux
