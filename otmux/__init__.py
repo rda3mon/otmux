@@ -16,15 +16,15 @@ def remote(hosts, session):
         count += 1
         if count%10 == 0:
             windows += 1;
-            command += " \; new-window 'ssh {}'".format(host)
+            command += " \; new-window -t {} 'ssh {}'".format(session, host)
         else:
-            command += " \; split-window -h 'ssh {}'".format(host)
-        command += " \; select-layout tiled > /dev/null"
+            command += " \; split-window -t {} -h 'ssh {}'".format(session, host)
+        command += " \; select-layout -t {} tiled".format(session)
 
     for window in range(windows, 0, -1):
-        command += " \; select-window -t {}".format(window)
-        command += " \; set-window-option synchronize-panes on > /dev/null"
-    command += " \; select-pane -t 1"
+        command += " \; select-window -t {}:{}".format(session, window)
+        command += " \; set-window-option -t {}:{} synchronize-panes on".format(session, window)
+    command += " \; select-pane -t {}:1".format(session)
     exit_status = call(command, shell=True)
 
 def login(hosts):
