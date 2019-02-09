@@ -31,7 +31,8 @@ make && sudo make install
 ## Usage
 
 ```bash
-usage: otmux [-h] (-m HOSTS | -H HOSTSFILE) (-r | -l) -s SESSION [-d]
+usage: otmux [-h] (-m HOSTS | -H HOSTSFILE) (-r | -l) [-p PSIZE] [-c COUNT] -s
+             SESSION [-i {all,first,last,any}] [-d]
 
 Multi remote actions using Tmux and ssh
 
@@ -43,7 +44,13 @@ optional arguments:
                         host file, line seperated
   -r, --remote          should you perform operations remotely
   -l, --login           should you login into each of the hosts
+  -p PSIZE, --psize PSIZE
+                        number of sessions per window. Default=9
+  -c COUNT, --count COUNT
+                        number of sessions per instance. Default=1
   -s SESSION, --session SESSION
                         session name
+  -i {all,first,last,any}, --instances {all,first,last,any}
+                        instance to login
   -d, --dry             Dry run
 ```
