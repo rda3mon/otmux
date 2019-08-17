@@ -2,6 +2,8 @@
 
 Perform multiple remote activities using tmux
 
+![GIF](resources/gifs/otmux.gif)
+
 ## Installation
 
 #### To install from release (Built on linux)
@@ -27,6 +29,16 @@ For specific release
 git clone https://github.com/rda3mon/otmux.git --branch v0.1-pre /tmp/otmux && cd /tmp/otmux
 make && sudo make install
 ```
+
+#### Features
+
+* SSH into multiple remote instances using tmux. Similar to [cssh](https://linux.die.net/man/1/cssh) command with lot more capability and run commands parallelly or independently.
+
+![GIF](resources/gifs/multiple_remote.gif)
+
+* SSH into single remote instances multiple number of times using tmux. This can be useful at times where you want to tail log on one of the connection and restart service on another connection 
+
+![GIF](resources/gifs/single_remote_multiple.gif)
 
 ## Usage
 
