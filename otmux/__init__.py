@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import argparse
 import sys
@@ -6,7 +6,7 @@ import re
 from subprocess import call
 import random
 
-def remote(hosts, session, psize, session_count, instances):
+def login(hosts, session, psize, session_count, instances, dry):
     if instances == "first":
         hosts = [hosts[0]]
     elif instances == "last":
@@ -37,16 +37,20 @@ def remote(hosts, session, psize, session_count, instances):
         command += " \; select-window -t {}:{}".format(session, window)
         command += " \; set-window-option -t {}:{} synchronize-panes on".format(session, window)
     command += " \; select-pane -t {}:1".format(session)
-    exit_status = call(command, shell=True)
 
-def login(hosts):
-    pass
+    if dry:
+        print("Dry Command: {}".format(command));
+    else:
+        exit_status = call(command, shell=True)
+
+def remote(hosts, session, psize, session_count, instances, dry):
+    print("In Development")
 
 
 def parseHosts(hostsString):
     hosts = None
     try:
-        hosts = re.split(r"[ \t]+", hostsString.strip())
+        hosts = re.split(r"[, \t]+", hostsString.strip())
     except:
         raise argparse.ArgumentTypeError("Invalid hostsfile. Failed with "
                                          + str(sys.exc_info()[0]) + ", error: " + str(sys.exc_info()[1]))
@@ -74,7 +78,7 @@ def main():
     parser = argparse.ArgumentParser(description='Multi remote actions using Tmux and ssh')
 
     hostsGroup = parser.add_mutually_exclusive_group(required=True)
-    hostsGroup.add_argument("-m", "--hosts", help="hosts, space seperated", type=parseHosts)
+    hostsGroup.add_argument("-m", "--hosts", help="hosts with (space, comma, tab) seperated", type=parseHosts)
     hostsGroup.add_argument("-H", "--hostsfile", help="host file, line seperated", type=parseHostsFile)
 
     actionGroup = parser.add_mutually_exclusive_group(required=True)
@@ -96,8 +100,8 @@ def main():
         hosts = args.hostsfile
 
     if args.remote is True:
-        remote(hosts, args.session, args.psize, args.count, args.instances)
+        remote(hosts, args.session, args.psize, args.count, args.instances, args.dry)
     elif args.login is True:
-        login(hosts, args.session, args.psize, args.count, args.instances)
+        login(hosts, args.session, args.psize, args.count, args.instances, args.dry)
 
 __all__ = ['main']
