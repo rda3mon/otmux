@@ -43,14 +43,12 @@ if __name__ == '__main__':
     hostsGroup.add_argument("-m", "--hosts", help="hosts with (space, comma, tab) seperated", type=parseHosts)
     hostsGroup.add_argument("-H", "--hostsfile", help="host file, line seperated", type=parseHostsFile)
 
-    actionGroup = parser.add_mutually_exclusive_group(required=True)
-    actionGroup.add_argument("-r", "--remote", help="should you perform operations remotely", action="store_true")
-    actionGroup.add_argument("-l", "--login", help="should you login into each of the hosts", action="store_true", default=False)
-
     parser.add_argument("-p", "--psize", help="number of sessions per window. Default=9", type=int, default=9)
-    parser.add_argument("-c", "--count", help="number of sessions per instance. Default=1", type=int, default=1)
-    parser.add_argument("-s", "--session", help="session name", required=True)
+    parser.add_argument("-s", "--sessions", help="number of sessions per instance. Default=1", type=int, default=1)
+    parser.add_argument("-n", "--session-name", help="session name", required=True)
     parser.add_argument("-i", "--instances", help="instance to login", default="all", choices=["all", "first", "last", "any"])
+    parser.add_argument("-c", "--command", help="command to run remotely")
+    parser.add_argument("-o", "--out-directory", help="output the logs to directory")
     parser.add_argument("-d", "--dry", help="Dry run", action="store_true", default=False)
 
     args = parser.parse_args()
@@ -61,8 +59,5 @@ if __name__ == '__main__':
     elif args.hostsfile is not None:
         hosts = args.hostsfile
 
-    if args.remote is True:
-        otmux.Otmux().remote(hosts, args.session, args.psize, args.count, args.instances, args.dry)
-    elif args.login is True:
-        otmux.Otmux().login(hosts, args.session, args.psize, args.count, args.instances, args.dry)
+    otmux.Otmux().run(hosts, args.session_name, args.psize, args.sessions, args.instances, args.command, args.out_directory, args.dry)
 
