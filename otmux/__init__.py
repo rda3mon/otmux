@@ -24,6 +24,7 @@ class Otmux():
         if run_command is None:
             return "ssh {}".format(host)
         else:
+            run_command = run_command.replace('"', '\\"')
             return "ssh {} '{}' | sed \"s/^/{}#/\" > {}/{}.log".format(host, run_command, host, out_directory, host)
 
     def run(self, hosts, session_name, pane_size, session_count, filters, run_command, out_directory, dry):
