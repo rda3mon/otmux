@@ -10,16 +10,28 @@ class Otmux():
     def __init__(self):
         pass
 
-    def login(self, hosts, session, psize, session_count, instances, dry):
-        if instances == "first":
-            hosts = [hosts[0]]
-        elif instances == "last":
-            hosts = [hosts[-1]]
-        elif instances == "any":
-            hosts = [random.choice(hosts)]
+    def filter_hosts(self, hosts, filters):
+        if filters == "first":
+            return [hosts[0]]
+        elif filters == "last":
+            return [hosts[-1]]
+        elif filters == "any":
+            return [random.choice(hosts)]
+        else:
+            return hosts
+
+    def construct_command(self, host, run_command, out_directory):
+        if run_command is None:
+            return "ssh {}".format(host)
+        else:
+            return "ssh {} '{}' | sed \"s/^/{}#/\" > {}/{}.log".format(host, run_command, host, out_directory, host)
+
+    def run(self, hosts, session_name, pane_size, session_count, filters, run_command, out_directory, dry):
+        hosts = self.filter_hosts(hosts, filters)
+
 
         first = hosts[0]
-        command = "tmux new -s {} -d 'ssh {}'".format(session, first)
+        command = '''tmux new -s {} -d "{}"'''.format(session_name, self.construct_command(first, run_command, out_directory))
 
         flag = True # first host is already loaded
         windows = 1
@@ -32,20 +44,18 @@ class Otmux():
                 count += 1
                 if count%psize == 0:
                     windows += 1;
-                    command += " \; new-window -t {} 'ssh {}'".format(session, host)
+                    command += ''' \; new-window -t {} "{}"'''.format(session_name, self.construct_command(host, run_command, out_directory))
                 else:
-                    command += " \; split-window -t {} -h 'ssh {}'".format(session, host)
-                command += " \; select-layout -t {} tiled".format(session)
+                    command += ''' \; split-window -t {} -h "{}"'''.format(session_name, self.construct_command(host, run_command, out_directory))
+                command += " \; select-layout -t {} tiled".format(session_name)
+
 
         for window in range(windows, 0, -1):
-            command += " \; select-window -t {}:{}".format(session, window)
-            command += " \; set-window-option -t {}:{} synchronize-panes on".format(session, window)
-        command += " \; select-pane -t {}:1".format(session)
+            command += " \; select-window -t {}:{}".format(session_name, window)
+            command += " \; set-window-option -t {}:{} synchronize-panes on".format(session_name, window)
+        command += " \; select-pane -t {}:1".format(session_name)
 
         if dry:
             print("Dry Command: {}".format(command));
         else:
             exit_status = call(command, shell=True)
-
-    def remote(self, hosts, session, psize, session_count, instances, dry):
-        print("In Development")
