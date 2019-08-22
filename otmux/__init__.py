@@ -43,7 +43,7 @@ class Otmux():
                     flag = False
                     continue
                 count += 1
-                if count%psize == 0:
+                if count%pane_size == 0:
                     windows += 1;
                     command += ''' \; new-window -t {} "{}"'''.format(session_name, self.construct_command(host, run_command, out_directory))
                 else:
