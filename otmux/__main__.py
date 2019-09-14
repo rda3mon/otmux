@@ -45,7 +45,7 @@ if __name__ == '__main__':
     hostsGroup.add_argument("-Hs", "--hosts", help="hosts string with (space, comma, tab) seperated", type=parseHosts)
     hostsGroup.add_argument("-H", "--hostsfile", help="host file, line seperated", type=parseHostsFile)
 
-    parser.add_argument("-p", "--psize", help="number of sessions per window. Default=9", type=int, default=15)
+    parser.add_argument("-p", "--psize", help="number of sessions per window. Default=9", type=int, default=20)
     parser.add_argument("-s", "--sessions", help="number of sessions per instance. Default=1", type=int, default=1)
     parser.add_argument("-n", "--session-name", help="session name")
     parser.add_argument("-i", "--instances", help="instance to login", default="all", choices=["all", "first", "last", "any"])
