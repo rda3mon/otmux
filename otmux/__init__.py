@@ -22,10 +22,10 @@ class Otmux():
 
     def construct_command(self, host, run_command, out_directory):
         if run_command is None:
-            return "ssh {}".format(host)
+            return "ssh -oStrictHostKeyChecking=no {}".format(host)
         else:
             run_command = run_command.replace('"', '\\"')
-            return "ssh {} '{}' | sed \"s/^/{}#/\" > {}/{}.log".format(host, run_command, host, out_directory, host)
+            return "ssh -oStrictHostKeyChecking=no {} '{}' | sed \"s/^/{}#/\" > {}/{}.log".format(host, run_command, host, out_directory, host)
 
     def run(self, hosts, session_name, pane_size, session_count, filters, run_command, out_directory, dry):
         hosts = self.filter_hosts(hosts, filters)
