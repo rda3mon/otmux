@@ -27,7 +27,7 @@ class Otmux():
             run_command = run_command.replace('"', '\\"')
             return "ssh -oStrictHostKeyChecking=no {} '{}' | sed \"s/^/{}#/\" > {}/{}.log".format(host, run_command, host, out_directory, host)
 
-    def run(self, hosts, session_name, pane_size, session_count, filters, run_command, out_directory, dry):
+    def run(self, hosts, session_name, pane_size, session_count, filters, run_command, out_directory, stay, dry):
         hosts = self.filter_hosts(hosts, filters)
 
 
@@ -55,6 +55,10 @@ class Otmux():
             command += " \; select-window -t {}:{}".format(session_name, window)
             command += " \; set-window-option -t {}:{} synchronize-panes on".format(session_name, window)
         command += " \; select-pane -t {}:1".format(session_name)
+
+        if not stay:
+            command += " \; switch-client -t {}:1".format(session_name)
+
 
         if dry:
             print("Dry Command: {}".format(command));
