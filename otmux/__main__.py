@@ -47,11 +47,12 @@ if __name__ == '__main__':
 
     parser.add_argument("-p", "--psize", help="number of sessions per window. Default=9", type=int, default=20)
     parser.add_argument("-s", "--sessions", help="number of sessions per instance. Default=1", type=int, default=1)
-    parser.add_argument("-n", "--session-name", help="session name")
+    parser.add_argument("-sn", "--session-name", help="session name")
+    parser.add_argument("-sy", "--stay", help="Switch to new session", action="store_true", default=False)
     parser.add_argument("-i", "--instances", help="instance to login", default="all", choices=["all", "first", "last", "any"])
     parser.add_argument("-c", "--command", help="command to run remotely")
+    parser.add_argument("-cs", "--create-session", help="Create new session or open in same session", action="store_true", default=False)
     parser.add_argument("-o", "--out-directory", help="output the logs to directory")
-    parser.add_argument("-sy", "--stay", help="Switch to new session", action="store_true", default=False)
     parser.add_argument("-d", "--dry", help="Dry run", action="store_true", default=False)
 
     args = parser.parse_args()
@@ -65,7 +66,7 @@ if __name__ == '__main__':
     if args.session_name is None:
         args.session_name = "session-{}".format(''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(5)))
 
-    otmux.Otmux().run(hosts, args.session_name, args.psize, args.sessions, args.instances, args.command, args.out_directory, args.stay, args.dry)
+    otmux.Otmux().run(hosts, args.session_name, args.create_session, args.psize, args.sessions, args.instances, args.command, args.out_directory, args.stay, args.dry)
 
-    if args.dry is False:
+    if args.dry is False and args.create_session is True:
         print("Session - {} created".format(args.session_name))
