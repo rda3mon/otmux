@@ -57,7 +57,8 @@ class Otmux():
                 command += " \; select-layout {} tiled".format(session_command)
 
         for window in range(windows, 0, -1):
-            command += " \; set-window-option {} synchronize-panes on".format(session_command)
+            if len(hosts) > 1:
+                command += " \; set-window-option {} synchronize-panes on".format(session_command)
             if window != 1:
                 command += " \; select-window {} -t-1".format(session_command)
             elif create_session:
