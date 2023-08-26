@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
     # K8s Logs Parser
     k8s_logs_parser = argparse.ArgumentParser(add_help=False);
-    k8s_logs_parser.add_argument("-tl", "--tail", help="Number of logs to tail", type=int, default=100)
+    k8s_logs_parser.add_argument("-tl", "--tail", help="Number of logs to tail", type=int)
 
     # K8s Debug Parser
     k8s_debug_parser = argparse.ArgumentParser(add_help=False);

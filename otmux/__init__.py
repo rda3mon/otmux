@@ -33,7 +33,10 @@ class Otmux():
             elif k8s_type == "debug":
                 return "kubectl debug -it {} -n {} --target={} --image={} -- bash".format(host, namespace, container, emphemeral_image)
             else:
-                return "kubectl logs {} -n {} -c {} -f --tail={}".format(host, namespace, container, tail_number)
+                if tail_number is None:
+                    return "kubectl logs {} -n {} -c {} -f | less".format(host, namespace, container)
+                else:
+                    return "kubectl logs {} -n {} -c {} -f --tail={}".format(host, namespace, container, tail_number)
 
     def construct_command(self, cmd_type, host, run_command, out_directory, namespace, container, k8s_type, emphemeral_image, shell, tail_number):
         cmd = None;
