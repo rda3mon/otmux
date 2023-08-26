@@ -39,21 +39,35 @@ def parseHostsFile(hostsFile):
     return hosts
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Multi remote actions using Tmux and ssh')
+    parser = argparse.ArgumentParser(description='Multi remote actions using Tmux and ssh or kubectl')
 
-    hostsGroup = parser.add_mutually_exclusive_group(required=True)
-    hostsGroup.add_argument("-Hs", "--hosts", help="hosts string with (space, comma, tab) seperated", type=parseHosts)
-    hostsGroup.add_argument("-H", "--hostsfile", help="host file, line seperated", type=parseHostsFile)
+    hosts_parser = argparse.ArgumentParser(add_help=False);
 
-    parser.add_argument("-p", "--psize", help="number of sessions per window. Default=9", type=int, default=20)
-    parser.add_argument("-s", "--sessions", help="number of sessions per instance. Default=1", type=int, default=1)
-    parser.add_argument("-sn", "--session-name", help="session name")
-    parser.add_argument("-sy", "--stay", help="Switch to new session", action="store_true", default=False)
-    parser.add_argument("-i", "--instances", help="instance to login", default="all", choices=["all", "first", "last", "any"])
-    parser.add_argument("-c", "--command", help="command to run remotely")
-    parser.add_argument("-cs", "--create-session", help="Create new session or open in same session", action="store_true", default=False)
-    parser.add_argument("-o", "--out-directory", help="output the logs to directory")
-    parser.add_argument("-d", "--dry", help="Dry run", action="store_true", default=False)
+    hosts_group = hosts_parser.add_mutually_exclusive_group(required=True)
+    hosts_group.add_argument("-Hs", "--hosts", help="hosts string with (space, comma, tab) seperated", type=parseHosts)
+    hosts_group.add_argument("-H", "--hostsfile", help="host file, line seperated", type=parseHostsFile)
+
+    ssh_parser = argparse.ArgumentParser(add_help=False);
+
+    k8s_parser = argparse.ArgumentParser(add_help=False);
+    k8s_parser.add_argument("-ns", "--namespace", help="K8s namespace", required=True)
+    k8s_parser.add_argument("-con", "--container", help="k8s pod container", required=True)
+    k8s_parser.add_argument("-t", "--type", choices=["logs", "debug", "shell"], required=True, default="logs")
+
+    common_parser = argparse.ArgumentParser(add_help=False)
+    common_parser.add_argument("-p", "--psize", help="number of sessions per window. Default=9", type=int, default=20)
+    common_parser.add_argument("-s", "--sessions", help="number of sessions per instance. Default=1", type=int, default=1)
+    common_parser.add_argument("-sn", "--session-name", help="session name")
+    common_parser.add_argument("-sy", "--stay", help="Switch to new session", action="store_true", default=False)
+    common_parser.add_argument("-i", "--instances", help="instance to login", default="all", choices=["all", "first", "last", "any"])
+    common_parser.add_argument("-c", "--command", help="command to run remotely")
+    common_parser.add_argument("-cs", "--create-session", help="Create new session or open in same session", action="store_true", default=False)
+    common_parser.add_argument("-o", "--out-directory", help="output the logs to directory")
+    common_parser.add_argument("-d", "--dry", help="Dry run", action="store_true", default=False)
+
+    parsers = parser.add_subparsers(required=True, dest='cmd');
+    parsers.add_parser('ssh', parents=[hosts_parser, ssh_parser, common_parser], help='ssh commands in parallel')
+    parsers.add_parser('k8s', parents=[hosts_parser, k8s_parser, common_parser], help='k8s kubectl commands in parallel')
 
     args = parser.parse_args()
 
@@ -66,7 +80,10 @@ if __name__ == '__main__':
     if args.session_name is None:
         args.session_name = "session-{}".format(''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(5)))
 
-    otmux.Otmux().run(hosts, args.session_name, args.create_session, args.psize, args.sessions, args.instances, args.command, args.out_directory, args.stay, args.dry)
+    if args.cmd == "ssh":
+        otmux.Otmux().run(args.cmd, hosts, args.session_name, args.create_session, args.psize, args.sessions, args.instances, args.command, args.out_directory, args.stay, None, None, None, args.dry)
+    elif args.cmd == "k8s":
+        otmux.Otmux().run(args.cmd, hosts, args.session_name, args.create_session, args.psize, args.sessions, args.instances, args.command, args.out_directory, args.stay, args.namespace, args.container, args.type, args.dry)
 
     if args.dry is False and args.create_session is True:
         print("Session - {} created".format(args.session_name))

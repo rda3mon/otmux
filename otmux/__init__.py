@@ -20,25 +20,40 @@ class Otmux():
         else:
             return hosts
 
-    def construct_command(self, host, run_command, out_directory):
+    def construct_command_ssh(self, host, run_command, out_directory):
         if run_command is None:
             return "ssh -oStrictHostKeyChecking=no {};bash".format(host)
         else:
             run_command = run_command.replace('"', '\\"')
             return "ssh -oStrictHostKeyChecking=no {} '{}' | sed \"s/^/{}#/\" > {}/{}.log;bash".format(host, run_command, host, out_directory, host)
 
-    def run(self, hosts, session_name, create_session, pane_size, session_count, filters, run_command, out_directory, stay, dry):
+    def construct_command_k8s(self, host, run_command, out_directory, namespace, container, k8s_type):
+            if k8s_type == "shell":
+                return "kubectl exec -it {} -n {} -c {} -- bash".format(host, namespace, container)
+            elif k8s_type == "debug":
+                return "kubectl logs {} -n {} -c {} -f --tail=100".format(host, namespace, container)
+            else:
+                return "kubectl debug -it {} -n {} --target={} -- bash".format(host, namespace, container)
+
+    def construct_command(self, cmd_type, host, run_command, out_directory, namespace, container, k8s_type):
+        cmd = None;
+        if cmd_type == "ssh":
+            cmd = self.construct_command_ssh(host, run_command, out_directory)
+        elif cmd_type == "k8s":
+            cmd = self.construct_command_k8s(host, run_command, out_directory, namespace, container, k8s_type)
+
+        return cmd
+
+    def run(self, cmd_type, hosts, session_name, create_session, pane_size, session_count, filters, run_command, out_directory, stay, namespace, container, k8s_type, dry):
         hosts = self.filter_hosts(hosts, filters)
 
         first = hosts[0]
         session_command = ""
         if create_session is True:
-            command = '''tmux new -s {} -d "{}"'''.format(session_name, self.construct_command(first, run_command, out_directory))
+            command = '''tmux new -s {} -d "{}"'''.format(session_name, self.construct_command(cmd_type, first, run_command, out_directory, namespace, container, k8s_type))
             session_command = "-t {}".format(session_name)
         else:
-            command = '''tmux new-window "{}"'''.format(self.construct_command(first, run_command, out_directory))
-
-
+            command = '''tmux new-window "{}"'''.format(self.construct_command(cmd_type, first, run_command, out_directory, namespace, container, k8s_type))
 
         flag = True # first host is already loaded
         windows = 1
@@ -51,9 +66,9 @@ class Otmux():
                 count += 1
                 if count%pane_size == 0:
                     windows += 1;
-                    command += ''' \; new-window {} "{}"'''.format(session_command, self.construct_command(host, run_command, out_directory))
+                    command += ''' \; new-window {} "{}"'''.format(session_command, self.construct_command(cmd_type, host, run_command, out_directory, namespace, container, k8s_type))
                 else:
-                    command += ''' \; split-window {} -h "{}"'''.format(session_command, self.construct_command(host, run_command, out_directory))
+                    command += ''' \; split-window {} -h "{}"'''.format(session_command, self.construct_command(cmd_type, host, run_command, out_directory, namespace, container, k8s_type))
                 command += " \; select-layout {} tiled".format(session_command)
 
         for window in range(windows, 0, -1):
