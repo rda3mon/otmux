@@ -41,19 +41,13 @@ def parseHostsFile(hostsFile):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Multi remote actions using Tmux and ssh or kubectl')
 
+    # Hosts Parser
     hosts_parser = argparse.ArgumentParser(add_help=False);
-
     hosts_group = hosts_parser.add_mutually_exclusive_group(required=True)
     hosts_group.add_argument("-Hs", "--hosts", help="hosts string with (space, comma, tab) seperated", type=parseHosts)
     hosts_group.add_argument("-H", "--hostsfile", help="host file, line seperated", type=parseHostsFile)
 
-    ssh_parser = argparse.ArgumentParser(add_help=False);
-
-    k8s_parser = argparse.ArgumentParser(add_help=False);
-    k8s_parser.add_argument("-ns", "--namespace", help="K8s namespace", required=True)
-    k8s_parser.add_argument("-con", "--container", help="k8s pod container", required=True)
-    k8s_parser.add_argument("-t", "--type", choices=["logs", "debug", "shell"], required=True, default="logs")
-
+    # Common Parser
     common_parser = argparse.ArgumentParser(add_help=False)
     common_parser.add_argument("-p", "--psize", help="number of sessions per window. Default=9", type=int, default=20)
     common_parser.add_argument("-s", "--sessions", help="number of sessions per instance. Default=1", type=int, default=1)
@@ -65,9 +59,37 @@ if __name__ == '__main__':
     common_parser.add_argument("-o", "--out-directory", help="output the logs to directory")
     common_parser.add_argument("-d", "--dry", help="Dry run", action="store_true", default=False)
 
+    # K8s Shell Parser
+    k8s_shell_parser = argparse.ArgumentParser(add_help=False);
+    k8s_shell_parser.add_argument("-sh", "--shell", help="Shell to login to container", choices=["bash", "sh"], default="bash")
+
+    # K8s Logs Parser
+    k8s_logs_parser = argparse.ArgumentParser(add_help=False);
+    k8s_logs_parser.add_argument("-tl", "--tail", help="Number of logs to tail", type=int, default=100)
+
+    # K8s Debug Parser
+    k8s_debug_parser = argparse.ArgumentParser(add_help=False);
+    k8s_debug_parser.add_argument("-img", "--image", help="Image for ephemeral", required=True)
+
+    # K8s Common Parser
+    k8s_common_parser = argparse.ArgumentParser(add_help=False);
+    k8s_common_parser.add_argument("-ns", "--namespace", help="K8s namespace", required=True)
+    k8s_common_parser.add_argument("-con", "--container", help="k8s pod container", required=True)
+
+    # K8s Parser
+    k8s_parser = argparse.ArgumentParser(add_help=False);
+    k8s_parsers = k8s_parser.add_subparsers(required=True, dest='k8s_type');
+    k8s_parsers.add_parser('logs', parents=[hosts_parser, common_parser, k8s_logs_parser, k8s_common_parser], help='print logs of containers')
+    k8s_parsers.add_parser('shell', parents=[hosts_parser, common_parser, k8s_shell_parser, k8s_common_parser], help='login into shell of container')
+    k8s_parsers.add_parser('debug', parents=[hosts_parser, common_parser, k8s_debug_parser, k8s_common_parser], help='debug into container with ephemeral containers')
+
+    # SSH Parser
+    ssh_parser = argparse.ArgumentParser(add_help=False, parents=[hosts_parser, common_parser]);
+
+    # SSH / K8s Sub parsers
     parsers = parser.add_subparsers(required=True, dest='cmd');
-    parsers.add_parser('ssh', parents=[hosts_parser, ssh_parser, common_parser], help='ssh commands in parallel')
-    parsers.add_parser('k8s', parents=[hosts_parser, k8s_parser, common_parser], help='k8s kubectl commands in parallel')
+    parsers.add_parser('ssh', parents=[ssh_parser], help='ssh commands in parallel')
+    parsers.add_parser('k8s', parents=[k8s_parser], help='k8s kubectl commands in parallel')
 
     args = parser.parse_args()
 
@@ -81,9 +103,14 @@ if __name__ == '__main__':
         args.session_name = "session-{}".format(''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(5)))
 
     if args.cmd == "ssh":
-        otmux.Otmux().run(args.cmd, hosts, args.session_name, args.create_session, args.psize, args.sessions, args.instances, args.command, args.out_directory, args.stay, None, None, None, args.dry)
+        otmux.Otmux().run(args.cmd, hosts, args.session_name, args.create_session, args.psize, args.sessions, args.instances, args.command, args.out_directory, args.stay, None, None, None, None, None, None, args.dry)
     elif args.cmd == "k8s":
-        otmux.Otmux().run(args.cmd, hosts, args.session_name, args.create_session, args.psize, args.sessions, args.instances, args.command, args.out_directory, args.stay, args.namespace, args.container, args.type, args.dry)
+        if args.k8s_type == "debug":
+            otmux.Otmux().run(args.cmd, hosts, args.session_name, args.create_session, args.psize, args.sessions, args.instances, args.command, args.out_directory, args.stay, args.namespace, args.container, args.k8s_type, args.image, None, None, args.dry)
+        elif args.k8s_type == "shell":
+            otmux.Otmux().run(args.cmd, hosts, args.session_name, args.create_session, args.psize, args.sessions, args.instances, args.command, args.out_directory, args.stay, args.namespace, args.container, args.k8s_type, None, args.shell, None, args.dry)
+        elif args.k8s_type == "logs":
+            otmux.Otmux().run(args.cmd, hosts, args.session_name, args.create_session, args.psize, args.sessions, args.instances, args.command, args.out_directory, args.stay, args.namespace, args.container, args.k8s_type, None, None, args.tail, args.dry)
 
     if args.dry is False and args.create_session is True:
         print("Session - {} created".format(args.session_name))
